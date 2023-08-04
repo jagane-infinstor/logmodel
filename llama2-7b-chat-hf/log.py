@@ -13,4 +13,4 @@ pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, torch_dtype
 
 with mlflow.start_run():
     mlflow.transformers.log_model(transformers_model=pipe, artifact_path="my_pipeline")
-
+    mlflow.log_artifact('Dockerfile', artifact_path='my_pipeline')
