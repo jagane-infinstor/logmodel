@@ -16,7 +16,18 @@ print(f'pfmodel={pfmodel}')
 unwrapped_model = pfmodel.unwrap_python_model()
 print(f'unwrapped_model={unwrapped_model}')
 
-data = {'role': ['system', 'user'], 'message': ['You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.', 'What is a zoo?']}
-df = pd.DataFrame.from_dict(data)
-unwrapped_model.predict(df, {'max_tokens': 128})
-#unwrapped_model.my_custom_function(df, {'max_tokens': 128})
+roles = []
+messages = []
+roles.append('system')
+messages.append('You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.')
+while True:
+    line = input('> ')
+    roles.append('user')
+    messages.append(line)
+
+    data = {'role': roles, 'message': messages}
+    df = pd.DataFrame.from_dict(data)
+    pred = unwrapped_model.predict(df, {'max_tokens': 256})
+    print(pred)
+    roles.append('assistant')
+    messages.append(pred['choices'][0]['text'])
