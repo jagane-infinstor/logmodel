@@ -7,31 +7,24 @@ class LlamaCppModel(mlflow.pyfunc.PythonModel):
         self.python_model = self
 
     def predict(self, model_input, params=None):
-        print(f'LlamaCppModel: predict. Entered. model_input={model_input}, params={params}', flush=True)
         return self.predict_plus(model_input, params)
 
     def predict_plus(self, model_input, params=None):
-        print(f'LlamaCppModel.predict_plus. Entered. model_input={model_input}', flush=True)
-
+        #print(f'LlamaCppModel.predict_plus. Entered. model_input={model_input}', flush=True)
         default_system = 'You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.'
-
         if params:
             max_tokens = int(params['max_tokens'])
-            print(f'LlamaCppModel.predict_plus. from params max_tokens={max_tokens}, params={params}')
         else:
             max_tokens = 32
-            print(f'LlamaCppModel.predict_plus. default max_tokens={max_tokens}')
 
         model_input.reset_index()
         prompt = ''
         for index, row in model_input.iterrows():
-            print(f"  role={row['role']}, message={row['message']}")
             if index == 0:
                 if row['role'] == 'system':
                     prompt = f"<s>[INST] <<SYS>>\n{row['message']}\n\n<</SYS>>\n\n"
                     continue
                 else:
-                    print(f"    Using default system message since the first message's role is {row['role']} and not system")
                     prompt = f'<s>[INST] <<SYS>>\n{default_system}\n\n<</SYS>>\n\n'
                     if row['role'] == 'user':
                         prompt = prompt + f"{row['message']} [/INST]"
@@ -46,7 +39,6 @@ class LlamaCppModel(mlflow.pyfunc.PythonModel):
         prompt = '<s>[INST] '
         is_inside_elem = True
         for index, row in model_input.iterrows():
-            print(f"  role={row['role']}, message={row['message']}. prompt={prompt}, is_inside_elem={is_inside_elem}")
             if not is_inside_elem:
                 prompt = prompt + '<s>[INST] '
             if index == 0:
@@ -54,7 +46,6 @@ class LlamaCppModel(mlflow.pyfunc.PythonModel):
                     prompt = f"<<SYS>>\n{row['message']}\n\n<</SYS>>\n\n"
                     continue
                 else:
-                    print(f"    Using default system message since the first message's role is {row['role']} and not system")
                     prompt = f'<<SYS>>\n{default_system}\n\n<</SYS>>\n\n'
                     if row['role'] == 'user':
                         prompt = prompt + f"{row['message']} [/INST]"
@@ -70,7 +61,6 @@ class LlamaCppModel(mlflow.pyfunc.PythonModel):
 
         global llama_cpp_model
         output = llama_cpp_model(prompt, max_tokens=max_tokens, stop=[], echo=False)
-        print(output)
         return output
 
 def _load_pyfunc(data_path):

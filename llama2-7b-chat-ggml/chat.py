@@ -11,10 +11,7 @@ if deps:
 
 #pfmodel = mlflow.pyfunc.load_model(sys.argv[1], suppress_warnings=False, dst_path='loaded_model')
 pfmodel = mlflow.pyfunc.load_model(sys.argv[1], suppress_warnings=False)
-print(f'pfmodel={pfmodel}')
-
 unwrapped_model = pfmodel.unwrap_python_model()
-print(f'unwrapped_model={unwrapped_model}')
 
 roles = []
 messages = []
@@ -28,6 +25,6 @@ while True:
     data = {'role': roles, 'message': messages}
     df = pd.DataFrame.from_dict(data)
     pred = unwrapped_model.predict(df, {'max_tokens': 256})
-    print(pred)
+    print(f"assistant> {pred['choices'][0]['text']}")
     roles.append('assistant')
     messages.append(pred['choices'][0]['text'])
