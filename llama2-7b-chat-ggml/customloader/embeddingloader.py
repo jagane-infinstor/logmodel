@@ -17,12 +17,16 @@ class LlamaCppModel(mlflow.pyfunc.PythonModel):
             verbose = False
         model_input.reset_index()
         global llama_cpp_model
-        output = [] # llama_cpp_model(prompt, max_tokens=max_tokens, stop=[], echo=False)
+        output = []
+        for index, row in model_input.iterrows():
+            emb = llama_cpp_model.create_embedding(row['text'])
+            #print(f"embedding={emb}", flush=True)
+            output.append({'text': row['text'], 'embedding': emb['data'][0]['embedding']})
         return output
 
 def _load_pyfunc(data_path):
     print(f"_load_pyfunc: Entered. data_path={data_path}", flush=True)
-    llm = Llama(model_path=data_path)
+    llm = Llama(model_path=data_path, embedding=True)
     print(f"_load_pyfunc: llm={llm}", flush=True)
     global llama_cpp_model
     llama_cpp_model = llm
