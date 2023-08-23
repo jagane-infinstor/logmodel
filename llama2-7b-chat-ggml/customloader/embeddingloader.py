@@ -20,7 +20,8 @@ class LlamaCppModel(mlflow.pyfunc.PythonModel):
         output = []
         for index, row in model_input.iterrows():
             emb = llama_cpp_model.create_embedding(row['text'])
-            #print(f"embedding={emb}", flush=True)
+            if verbose:
+                print(f"text={row['text']}, embedding={emb}", flush=True)
             output.append({'text': row['text'], 'embedding': emb['data'][0]['embedding']})
         return output
 
