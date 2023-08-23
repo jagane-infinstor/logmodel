@@ -68,61 +68,6 @@ class LlamaCppModel(mlflow.pyfunc.PythonModel):
         output = llama_cpp_model(prompt, max_tokens=max_tokens, stop=[], echo=False)
         return output
 
-    def create_embedding(self, model_input, params=None):
-        print(f'LlamaCppModel.create_embedding. Entered. model_input={model_input}', flush=True)
-        if params and 'verbose' in params:
-            verbose = True
-        else:
-            verbose = False
-        g
-
-        model_input.reset_index()
-        prompt = ''
-        for index, row in model_input.iterrows():
-            if index == 0:
-                if row['role'] == 'system':
-                    prompt = f"<s>[INST] <<SYS>>\n{row['message']}\n\n<</SYS>>\n\n"
-                    continue
-                else:
-                    prompt = f'<s>[INST] <<SYS>>\n{default_system}\n\n<</SYS>>\n\n'
-                    if row['role'] == 'user':
-                        prompt = prompt + f"{row['message']} [/INST]"
-                    continue
-            if row['role'] == 'user':
-                prompt = prompt + f"<s>[INST] {row['message']} [/INST]"
-                continue
-            if row['role'] == 'assistant':
-                assistant = row['message']
-                prompt = prompt + f' {assistant} </s>'
-
-        prompt = '<s>[INST] '
-        is_inside_elem = True
-        for index, row in model_input.iterrows():
-            if not is_inside_elem:
-                prompt = prompt + '<s>[INST] '
-            if index == 0:
-                if row['role'] == 'system':
-                    prompt = f"<<SYS>>\n{row['message']}\n\n<</SYS>>\n\n"
-                    continue
-                else:
-                    prompt = f'<<SYS>>\n{default_system}\n\n<</SYS>>\n\n'
-                    if row['role'] == 'user':
-                        prompt = prompt + f"{row['message']} [/INST]"
-                    continue
-            if row['role'] == 'user':
-                prompt = prompt + f"{row['message']} [/INST]"
-                continue
-            if row['role'] == 'assistant':
-                assistant = row['message']
-                prompt = prompt + f' {assistant} </s>'
-                is_inside_elem = False
-        if verbose:
-            print(f"Final Prompt={prompt}", flush=True)
-
-        global llama_cpp_model
-        output = llama_cpp_model(prompt, max_tokens=max_tokens, stop=[], echo=False)
-        return output
-
 def _load_pyfunc(data_path):
     print(f"_load_pyfunc: Entered. data_path={data_path}", flush=True)
     llm = Llama(model_path=data_path)
