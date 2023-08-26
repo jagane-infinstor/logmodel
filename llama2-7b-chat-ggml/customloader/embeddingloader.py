@@ -3,7 +3,9 @@ from llama_cpp import Llama
 import pandas as pd
 
 class LlamaCppModel(mlflow.pyfunc.PythonModel):
-    def __init__(self):
+    def __init__(self, data_path):
+        self.data_path = data_path
+        self.llama_cpp_model = None
         self.python_model = self
 
     def predict(self, model_input, params=None):
@@ -16,10 +18,18 @@ class LlamaCppModel(mlflow.pyfunc.PythonModel):
         else:
             verbose = False
         model_input.reset_index()
-        global llama_cpp_model
+        if self.llama_cpp_model == None:
+            if params and 'n_gpu_layers' in params:
+                n_gpu_layers = int(params['n_gpu_layers'])
+                print(f"LlamaCppModel.predict_plus: loading model with n_gpu_layers={n_gpu_layers}")
+                self.llama_cpp_model = Llama(model_path=self.data_path, embedding=True, n_gpu_layers=n_gpu_layers)
+            else:
+                print(f"LlamaCppModel.predict_plus: loading model n_gpu_layers not specified")
+                self.llama_cpp_model = Llama(model_path=self.data_path, embedding=True)
+            print(f"predict_plus: llama_cpp_model={self.llama_cpp_model}", flush=True)
         output = []
         for index, row in model_input.iterrows():
-            emb = llama_cpp_model.create_embedding(row['text'])
+            emb = self.llama_cpp_model.create_embedding(row['text'])
             if verbose:
                 print(f"text={row['text']}, embedding={emb}", flush=True)
             output.append({'text': row['text'], 'embedding': emb['data'][0]['embedding']})
@@ -27,8 +37,4 @@ class LlamaCppModel(mlflow.pyfunc.PythonModel):
 
 def _load_pyfunc(data_path):
     print(f"_load_pyfunc: Entered. data_path={data_path}", flush=True)
-    llm = Llama(model_path=data_path, embedding=True)
-    print(f"_load_pyfunc: llm={llm}", flush=True)
-    global llama_cpp_model
-    llama_cpp_model = llm
-    return LlamaCppModel()
+    return LlamaCppModel(data_path)
